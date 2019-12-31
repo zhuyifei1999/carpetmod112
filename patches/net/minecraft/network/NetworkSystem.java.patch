@@ -1,0 +1,11 @@
+--- ../src-base/minecraft/net/minecraft/network/NetworkSystem.java
++++ ../src-work/minecraft/net/minecraft/network/NetworkSystem.java
+@@ -104,7 +104,7 @@
+                         ;
+                     }
+ 
+-                    p_initChannel_1_.pipeline().addLast("timeout", new ReadTimeoutHandler(30)).addLast("legacy_query", new LegacyPingHandler(NetworkSystem.this)).addLast("splitter", new NettyVarint21FrameDecoder()).addLast("decoder", new NettyPacketDecoder(EnumPacketDirection.SERVERBOUND)).addLast("prepender", new NettyVarint21FrameEncoder()).addLast("encoder", new NettyPacketEncoder(EnumPacketDirection.CLIENTBOUND));
++                    p_initChannel_1_.pipeline().addLast("timeout", new ReadTimeoutHandler(600)).addLast("legacy_query", new LegacyPingHandler(NetworkSystem.this)).addLast("splitter", new NettyVarint21FrameDecoder()).addLast("decoder", new NettyPacketDecoder(EnumPacketDirection.SERVERBOUND)).addLast("prepender", new NettyVarint21FrameEncoder()).addLast("encoder", new NettyPacketEncoder(EnumPacketDirection.CLIENTBOUND));
+                     NetworkManager networkmanager = new NetworkManager(EnumPacketDirection.SERVERBOUND);
+                     NetworkSystem.this.field_151272_f.add(networkmanager);
+                     p_initChannel_1_.pipeline().addLast("packet_handler", networkmanager);

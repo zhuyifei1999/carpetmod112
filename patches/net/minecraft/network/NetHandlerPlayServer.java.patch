@@ -26,7 +26,19 @@
      public EntityPlayerMP field_147369_b;
      private int field_147368_e;
      private long field_194402_f;
-@@ -257,9 +264,19 @@
+@@ -230,7 +237,10 @@
+         {
+             if (this.field_194403_g)
+             {
+-                this.func_194028_b(new TextComponentTranslation("disconnect.timeout", new Object[0]));
++                if (false)
++                {
++                    this.func_194028_b(new TextComponentTranslation("disconnect.timeout", new Object[0]));
++                }
+             }
+             else
+             {
+@@ -257,9 +267,19 @@
          {
              this.func_194028_b(new TextComponentTranslation("multiplayer.disconnect.idling", new Object[0]));
          }
@@ -47,7 +59,7 @@
      {
          this.field_184349_l = this.field_147369_b.field_70165_t;
          this.field_184350_m = this.field_147369_b.field_70163_u;
-@@ -297,6 +314,11 @@
+@@ -297,6 +317,11 @@
      {
          PacketThreadUtil.func_180031_a(p_147358_1_, this, this.field_147369_b.func_71121_q());
          this.field_147369_b.func_110430_a(p_147358_1_.func_149620_c(), p_147358_1_.func_192620_b(), p_147358_1_.func_149618_e(), p_147358_1_.func_149617_f());
@@ -59,7 +71,7 @@
      }
  
      private static boolean func_183006_b(CPacketPlayer p_183006_0_)
-@@ -500,6 +522,10 @@
+@@ -500,6 +525,10 @@
                          double d10 = this.field_147369_b.field_70159_w * this.field_147369_b.field_70159_w + this.field_147369_b.field_70181_x * this.field_147369_b.field_70181_x + this.field_147369_b.field_70179_y * this.field_147369_b.field_70179_y;
                          double d11 = d7 * d7 + d8 * d8 + d9 * d9;
  
@@ -70,7 +82,7 @@
                          if (this.field_147369_b.func_70608_bn())
                          {
                              if (d11 > 1.0D)
-@@ -518,7 +544,7 @@
+@@ -518,7 +547,7 @@
                                  i = 1;
                              }
  
@@ -79,7 +91,7 @@
                              {
                                  float f2 = this.field_147369_b.func_184613_cA() ? 300.0F : 100.0F;
  
-@@ -564,7 +590,9 @@
+@@ -564,7 +593,9 @@
                              this.field_147369_b.func_70080_a(d4, d5, d6, f, f1);
                              this.field_147369_b.func_71000_j(this.field_147369_b.field_70165_t - d0, this.field_147369_b.field_70163_u - d1, this.field_147369_b.field_70161_v - d2);
  
@@ -90,7 +102,7 @@
                              {
                                  boolean flag1 = worldserver.func_184144_a(this.field_147369_b, this.field_147369_b.func_174813_aQ().func_186664_h(0.0625D)).isEmpty();
  
-@@ -627,6 +655,8 @@
+@@ -627,6 +658,8 @@
  
      public void func_147345_a(CPacketPlayerDigging p_147345_1_)
      {
@@ -99,7 +111,7 @@
          PacketThreadUtil.func_180031_a(p_147345_1_, this, this.field_147369_b.func_71121_q());
          WorldServer worldserver = this.field_147367_d.func_71218_a(this.field_147369_b.field_71093_bK);
          BlockPos blockpos = p_147345_1_.func_179715_a();
-@@ -731,7 +761,10 @@
+@@ -731,7 +764,10 @@
          {
              if (this.field_184362_y == null && this.field_147369_b.func_70092_e((double)blockpos.func_177958_n() + 0.5D, (double)blockpos.func_177956_o() + 0.5D, (double)blockpos.func_177952_p() + 0.5D) < 64.0D && !this.field_147367_d.func_175579_a(worldserver, blockpos, this.field_147369_b) && worldserver.func_175723_af().func_177746_a(blockpos))
              {
@@ -110,7 +122,7 @@
              }
          }
          else
-@@ -755,12 +788,16 @@
+@@ -755,12 +791,16 @@
  
          if (!itemstack.func_190926_b())
          {
@@ -127,7 +139,7 @@
          PacketThreadUtil.func_180031_a(p_175088_1_, this, this.field_147369_b.func_71121_q());
  
          if (this.field_147369_b.func_175149_v())
-@@ -1666,13 +1703,14 @@
+@@ -1666,13 +1706,14 @@
                      String s8 = packetbuffer5.func_150789_c(32);
                      tileentitystructure.func_184405_a(TileEntityStructure.Mode.valueOf(s8));
                      tileentitystructure.func_184404_a(packetbuffer5.func_150789_c(64));
@@ -148,7 +160,7 @@
                      tileentitystructure.func_184409_c(new BlockPos(l2, i3, j));
                      String s2 = packetbuffer5.func_150789_c(32);
                      tileentitystructure.func_184411_a(Mirror.valueOf(s2));
-@@ -1709,6 +1747,17 @@
+@@ -1709,6 +1750,17 @@
                          }
                          else
                          {
@@ -166,7 +178,7 @@
                              this.field_147369_b.func_146105_b(new TextComponentTranslation("structure_block.load_prepare", new Object[] {s4}), false);
                          }
                      }
-@@ -1750,5 +1799,9 @@
+@@ -1750,5 +1802,9 @@
                  field_147370_c.error("Couldn't pick item", (Throwable)exception);
              }
          }
