@@ -1,6 +1,6 @@
 --- ../src-base/minecraft/net/minecraft/server/management/PlayerChunkMapEntry.java
 +++ ../src-work/minecraft/net/minecraft/server/management/PlayerChunkMapEntry.java
-@@ -19,25 +19,31 @@
+@@ -19,25 +19,32 @@
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
  
@@ -13,6 +13,7 @@
      private final PlayerChunkMap field_187282_b;
 -    private final List<EntityPlayerMP> field_187283_c = Lists.<EntityPlayerMP>newArrayList();
 +    public final List<EntityPlayerMP> field_187283_c = Lists.<EntityPlayerMP>newArrayList(); // CM: changed to public
++    private final List<EntityPlayerMP> renderingplayers = Lists.<EntityPlayerMP>newArrayList();
      private final ChunkPos field_187284_d;
      private final short[] field_187285_e = new short[64];
      @Nullable
@@ -35,7 +36,7 @@
      }
  
      public ChunkPos func_187264_a()
-@@ -53,6 +59,14 @@
+@@ -53,36 +60,75 @@
          }
          else
          {
@@ -50,17 +51,49 @@
              if (this.field_187283_c.isEmpty())
              {
                  this.field_187289_i = this.field_187282_b.func_72688_a().func_82737_E();
-@@ -65,6 +79,9 @@
-                 this.func_187278_c(p_187276_1_);
              }
-         }
-+
+ 
+             this.field_187283_c.add(p_187276_1_);
++        }
+ 
 +        // Added to enable randomticking chunk updates Carpet-XCOM
 +        carpet.carpetclient.CarpetClientRandomtickingIndexing.enableUpdate(p_187276_1_);
++    }
++
++    public void addRenderingPlayer(EntityPlayerMP player)
++    {
++        if (this.renderingplayers.contains(player))
++        {
++            field_187281_a.debug("Failed to add player. {} already is in chunk {}, {}", player, Integer.valueOf(this.field_187284_d.field_77276_a), Integer.valueOf(this.field_187284_d.field_77275_b));
++        }
++        else
++        {
++            this.renderingplayers.add(player);
++
+             if (this.field_187290_j)
+             {
+-                this.func_187278_c(p_187276_1_);
++                this.func_187278_c(player);
+             }
+         }
      }
  
      public void func_187277_b(EntityPlayerMP p_187277_1_)
-@@ -80,9 +97,20 @@
+     {
+-        if (this.field_187283_c.contains(p_187277_1_))
++        if (this.renderingplayers.contains(p_187277_1_))
+         {
+             if (this.field_187290_j)
+             {
+                 p_187277_1_.field_71135_a.func_147359_a(new SPacketUnloadChunk(this.field_187284_d.field_77276_a, this.field_187284_d.field_77275_b));
+             }
+ 
++            this.renderingplayers.remove(p_187277_1_);
++        }
++
++        if (this.field_187283_c.contains(p_187277_1_))
++        {
+             this.field_187283_c.remove(p_187277_1_);
  
              if (this.field_187283_c.isEmpty())
              {
@@ -71,7 +104,7 @@
 +                	CarpetClientChunkLogger.logger.log(this.field_187282_b.func_72688_a(),field_187284_d.field_77276_a,field_187284_d.field_77275_b,CarpetClientChunkLogger.Event.PLAYER_LEAVES);
 +                    carpet.carpetclient.CarpetClientChunkLogger.resetReason();
 +                }
-+            	
++
                  this.field_187282_b.func_187305_b(this);
              }
          }
@@ -81,7 +114,7 @@
      }
  
      public boolean func_187268_a(boolean p_187268_1_)
-@@ -95,7 +123,10 @@
+@@ -95,7 +141,10 @@
          {
              if (p_187268_1_)
              {
@@ -92,7 +125,28 @@
              }
              else
              {
-@@ -248,12 +279,28 @@
+@@ -127,7 +176,7 @@
+             this.field_187290_j = true;
+             Packet<?> packet = new SPacketChunkData(this.field_187286_f, 65535);
+ 
+-            for (EntityPlayerMP entityplayermp : this.field_187283_c)
++            for (EntityPlayerMP entityplayermp : this.renderingplayers)
+             {
+                 entityplayermp.field_71135_a.func_147359_a(packet);
+                 this.field_187282_b.func_72688_a().func_73039_n().func_85172_a(entityplayermp, this.field_187286_f);
+@@ -190,9 +239,9 @@
+     {
+         if (this.field_187290_j)
+         {
+-            for (int i = 0; i < this.field_187283_c.size(); ++i)
++            for (int i = 0; i < this.renderingplayers.size(); ++i)
+             {
+-                (this.field_187283_c.get(i)).field_71135_a.func_147359_a(p_187267_1_);
++                (this.renderingplayers.get(i)).field_71135_a.func_147359_a(p_187267_1_);
+             }
+         }
+     }
+@@ -248,12 +297,28 @@
      {
          if (p_187273_1_ != null)
          {
@@ -100,9 +154,9 @@
 +            {
 +                if (field_187290_j)
 +                {
-+                    for (int i = 0; i < field_187283_c.size(); i++)
++                    for (int i = 0; i < renderingplayers.size(); i++)
 +                    {
-+                        EntityPlayerMP player = field_187283_c.get(i);
++                        EntityPlayerMP player = renderingplayers.get(i);
 +                        SPacketUpdateTileEntity packet = ((IPlayerSensitiveTileEntity) p_187273_1_).getUpdatePacketPlayerSensitive(player);
 +                        if (packet != null)
 +                            player.field_71135_a.func_147359_a(packet);
@@ -121,3 +175,15 @@
          }
      }
  
+@@ -262,6 +327,11 @@
+         return this.field_187283_c.contains(p_187275_1_);
+     }
+ 
++    public boolean containsRenderingPlayer(EntityPlayerMP player)
++    {
++        return this.renderingplayers.contains(player);
++    }
++
+     public boolean func_187269_a(Predicate<EntityPlayerMP> p_187269_1_)
+     {
+         return Iterables.tryFind(this.field_187283_c, p_187269_1_).isPresent();
