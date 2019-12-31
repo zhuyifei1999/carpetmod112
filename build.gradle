@@ -76,13 +76,13 @@ minecraft
 	workspaceDir = 'projects'
 	// versionJson is used to download assets because ForgeGradle insists
 	versionJson = "jsons/${minecraft.version}-dev.json"
-	
+
 	def common = {
 		patchPrefixOriginal = '../src-base/minecraft'
 		patchPrefixChanged = '../src-work/minecraft'
 		mainClassServer = 'net.minecraft.server.MinecraftServer'
 	}
-	
+
 	project(project.name)
 	{
 		rootDir '.'
@@ -206,7 +206,7 @@ if (gradle.useAstyle)
 				commandLine(['astyle'] + extra_args)
 				break
 		}
-		
+
 		dependsOn extractSrcForAstyle
 		if (OS.CURRENT == OS.WINDOWS || OS.CURRENT == OS.OSX)
 			dependsOn extractAstyle
@@ -214,12 +214,12 @@ if (gradle.useAstyle)
 	task(zipAstyledSrc, type: Zip) {
 		from('build/localCache/astyle')
 		exclude '**/*.orig'
-		
+
 		def destFile = file(patcher_plugin.delayedFile(PatcherConstants.JAR_DECOMP_POST))
 		destinationDir = destFile.getParentFile()
 		archiveName = destFile.getName()
 		includeEmptyDirs = false
-		
+
 		dependsOn runAstyle
 	}
 	remapCleanJar.dependsOn zipAstyledSrc
@@ -276,11 +276,11 @@ task(project.name + 'OutputJar', type: Zip)
 			}
 		}
 	}
-	
+
 	archiveName = "${capitalizedName}_${project.version}.zip"
 	destinationDir = outputJar.destinationDir
 	includeEmptyDirs = false
-	
+
 	dependsOn reobfClean, reobfuscate
 }
 
@@ -345,6 +345,8 @@ task(copyResources, type: Sync) {
 task downloadFile(type: Download) {
 	src 'https://launcher.mojang.com/mc/game/1.12.2/server/886945bfb2b978778c3a0288fd7fab09d315b25f/server.jar'
 	dest 'resources/1.12.2.jar'
+	onlyIfModified true
+	useETag true
 }
 
 tasks.getByName('makeJar' + capitalizedName).dependsOn tasks.getByName('copy' + capitalizedName + 'FromSrc'), copyMcFromSrc
@@ -360,7 +362,7 @@ clean {
 if (gradle.useJavadocs)
 {
 	def retromap = tasks.getByName('retromapMc' + capitalizedName)
-	
+
 	task(stripJavadoc, type: Zip) {
 		from(zipTree('build/localCache/retromapped/retromapped.zip')) {
 			include '**/*.java'
@@ -377,7 +379,7 @@ if (gradle.useJavadocs)
 		destinationDir = file(retromap.out).getParentFile()
 		dependsOn retromap
 	}
-	
+
 	retromap.out = 'build/localCache/retromapped/retromapped.zip'
 	project.afterEvaluate { tasks.getByName('gen' + capitalizedName + 'Patches').dependsOn stripJavadoc }
 }
@@ -454,4 +456,3 @@ task releaseProject {
 //	description = 'Runs server'
 //	dependsOn project(':' + settings.modname).runserver
 //}
-
