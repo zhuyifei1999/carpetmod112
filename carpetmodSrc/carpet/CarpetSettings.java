@@ -44,7 +44,7 @@ public class CarpetSettings
     public static boolean locked = false;
 
     // TODO: replace these constants at build time
-    public static final String carpetVersion = "v20_01_01";
+    public static final String carpetVersion = "v20_04_23";
     public static final String minecraftVersion = "1.12.2";
     public static final String mcpMappings = "39-1.12";
 
@@ -57,11 +57,17 @@ public class CarpetSettings
      * Rules in this category should start with the "command" prefix
      */
 
+    @Rule(desc = "Enables /grow command for growing plants", category = COMMANDS)
+    public static boolean commandGrow = true;
+
     @Rule(desc = "Enables /spawn command for spawn tracking", category = COMMANDS)
     public static boolean commandSpawn = true;
 
     @Rule(desc = "Enables /tick command to control game speed", category = COMMANDS)
     public static boolean commandTick = true;
+
+    @Rule(desc = "Enables /profile command to profile lag", category = COMMANDS)
+    public static boolean commandProfile = true;
 
     @Rule(desc = "Enables /log command to monitor events in the game via chat and overlays", category = COMMANDS)
     public static boolean commandLog = true;
@@ -113,11 +119,20 @@ public class CarpetSettings
     @Rule(desc = "Enables /waypoint for saving coordinates", category = COMMANDS)
     public static boolean commandWaypoint = true;
 
+    @Rule(desc = "Allows the use of scoreboardPublic, a lower permition level score display.", category = COMMANDS)
+    public static boolean commandPublicScoreboard = true;
+
+    @Rule(desc = "Enables /light for changing light levels", category = COMMANDS)
+    public static boolean commandLight = true;
+
     @Rule(desc = "Disables players in /c from spectating other players", category = COMMANDS)
     public static boolean cameraModeDisableSpectatePlayers;
 
     @Rule(desc = "Places players back to the original location when using camera mode by using /c then /s", category = COMMANDS)
     public static boolean cameraModeRestoreLocation;
+
+    @Rule(desc = "Restricts the use of /c in survival mode.", category = COMMANDS)
+    public static boolean cameraModeSurvivalRestrictions;
 
     // ===== CREATIVE TOOLS ===== //
 
@@ -228,6 +243,12 @@ public class CarpetSettings
     @SurvivalDefault
     public static boolean hopperCounters = false;
 
+    @Rule(desc = "Items thrown into a cactus will count items that are destroyed in them.", category = {COMMANDS, CREATIVE, SURVIVAL}, extra = {
+    })
+    @CreativeDefault
+    @SurvivalDefault
+    public static boolean cactusCounter = false;
+
     @Rule(desc = "Enables integration with redstone multimeter mod", category = {CREATIVE, SURVIVAL}, validator = "validateRedstoneMultimeter", extra = {
             "Required clients with RSMM Mod by Narcoleptic Frog. Enables multiplayer experience with RSMM Mod"
     })
@@ -259,15 +280,18 @@ public class CarpetSettings
     @Rule(desc = "Observers don't pulse when placed", category = CREATIVE)
     public static boolean observersDoNonUpdate = false;
 
-    @Rule(desc = "Transparent observers, TNT and redstone blocks. May cause lighting artifacts", category = CREATIVE, validator = "validateFlyingMachineTransparent")
-    public static boolean flyingMachineTransparent = false;
 
     @Rule(desc = "Structure blocks remove entities in the bounding box when load entity option is enabled.", category = CREATIVE)
     public static boolean structuresReplaceEntities = false;
 
     @Rule(desc = "Allows to always be able to eat cakes.", category = CREATIVE)
-    public static boolean cakeAlwaysEat;
+    public static boolean cakeAlwaysEat = false;
 
+    @Rule(desc = "Spectators can no longer load chunks. WARNING! this is a highly experimental feature, use with care and with chunk debug to understand the chunkloading side effects.", category = {CREATIVE, EXPERIMENTAL})
+    public static boolean spectatorsDontLoadChunks = false;
+
+    @Rule(desc = "Transparent observers, TNT and redstone blocks. May cause lighting artifacts", category = CREATIVE, validator = "validateFlyingMachineTransparent")
+    public static boolean flyingMachineTransparent = false;
     private static boolean validateFlyingMachineTransparent(boolean value) {
         int newOpacity = value ? 0 : 255;
         Blocks.OBSERVER.setLightOpacity(newOpacity);
@@ -413,14 +437,45 @@ public class CarpetSettings
      * Rules in this category should end with the "Fix" suffix
      */
 
+    @Rule(desc = "Saves the block event on server shutdown and loads at server startup.", category = FIX, validator = "validateBlockEventSerializer")
+    public static boolean blockEventSerializer;
+    private static boolean validateBlockEventSerializer(boolean value) {
+        if (!value){
+            for (int dim = 0; dim < 3; dim++) {
+                WorldServer world = CarpetServer.minecraft_server.worlds[dim];
+                world.blockEventSerializer.markDirty();
+            }
+        }
+
+        return true;
+    }
+
+    @Rule(desc = "Removes the timeout caused by delays attempting to login.", category = FIX)
+    public static boolean removeConnectionTimeout;
+
+    @Rule(desc = "Villagers drop there inventory contents when they die.", category = FIX)
+    public static boolean villagerInventoryDropFix;
+
+    @Rule(desc = "Optimizes tile entity removal from the world.", category = OPTIMIZATIONS)
+    public static boolean optimizedTileEntityRemoval;
+
+    @Rule(desc = "Optimizes falling entity movement when using cannons.", category = OPTIMIZATIONS)
+    public static boolean fallingMovementOptimization;
+
+    @Rule(desc = "Optimizes TNT movement when using cannons.", category = OPTIMIZATIONS)
+    public static boolean TNTmovementOptimization = false;
+
+    @Rule(desc = "Fixes item desynchs when transfering items.", category = FIX)
+    public static boolean itemDesynchFix = false;
+
+    @Rule(desc = "Fixes the elytra check similar to 1.15 where the player do not have to fall to deploy elytra anymore.", category = FIX)
+    public static boolean elytraCheckFix;
+
     @Rule(desc = "Fixes the speed los on entitys after reload.", category = FIX)
     public static boolean reloadEntitySpeedlossFix;
 
     @Rule(desc = "Disables the packet limit that causes the book banning.", category = FIX)
     public static boolean disableBookBan;
-
-    @Rule(desc = "Rule made to debug recipes by pasting all recipes when crafting.", category = FIX)
-    public static boolean debugRecipes;
 
     @Rule(desc = "Fixes the collision cancelation lag when mobs are inside ladders and vines.", category = FIX)
     @BugFixDefault
@@ -468,18 +523,19 @@ public class CarpetSettings
     @BugFixDefault
     public static boolean growingUpWallJumpFix = false;
 
-    @Rule(desc = "Won't let mobs glitch into blocks when reloaded.", category = {FIX, EXPERIMENTAL}, validator = "validateReloadSuffocationFix", extra = {
-            "Can cause slight differences in mobs behaviour"
-    })
+//    @Rule(desc = "Won't let mobs glitch into blocks when reloaded.", category = {FIX, EXPERIMENTAL}, validator = "validateReloadSuffocationFix", extra = {
+//            "Can cause slight differences in mobs behaviour"
+//    })
+    @Rule(desc = "Won't let mobs glitch into blocks when reloaded.", category = FIX)
     @BugFixDefault
     public static boolean reloadSuffocationFix = false;
-    private static boolean validateReloadSuffocationFix(boolean value) {
-        if (value)
-            AxisAlignedBB.margin = 1.0 / (1L << 27);
-        else
-            AxisAlignedBB.margin = 0;
-        return true;
-    }
+//    private static boolean validateReloadSuffocationFix(boolean value) {
+//        if (value)
+//            AxisAlignedBB.margin = 1.0 / (1L << 27);
+//        else
+//            AxisAlignedBB.margin = 0;
+//        return true;
+//    }
 
     @Rule(desc = "Redstone dust algorithm", category = {EXPERIMENTAL, OPTIMIZATIONS}, extra = {
             "Fast redstone dust by Theosib",
@@ -627,12 +683,12 @@ public class CarpetSettings
     @BugFixDefault
     public static boolean ridingPlayerUpdateFix = false;
 
-    @Rule(desc = "Fixes players clipping through moving piston blocks partially.", category = FIX, options = {"0", "20", "40", "100"}, validator = "validatePistonClippingFix")
+//    @Rule(desc = "Fixes players clipping through moving piston blocks partially.", category = FIX, options = {"0", "20", "40", "100"}, validator = "validatePistonClippingFix")
     public static int pistonClippingFix = 0;
-    private static boolean validatePistonClippingFix(int pistonClippingFix) {
-        // TODO
-        return true;
-    }
+//    private static boolean validatePistonClippingFix(int pistonClippingFix) {
+//        // TODO
+//        return true;
+//    }
 
     @Rule(desc = "Recovers potion effects when they were replaced and the replacement ended", category = FIX)
     @BugFixDefault
@@ -647,35 +703,67 @@ public class CarpetSettings
     @Rule(desc = "Fixes updates suppression causing server crashes.", category = FIX)
     public static boolean updateSuppressionCrashFix;
 
-    @Rule(desc = "Fixes double tile tick scheduling", category = FIX, validator = "validateDoubleTileTickSchedulingFix")
+    @Rule(desc = "Fixes double tile tick scheduling", category = FIX)
     public static boolean doubleTileTickSchedulingFix = false;
-    private static boolean validateDoubleTileTickSchedulingFix(boolean value) {
-        if (CarpetServer.minecraft_server.worlds == null)
-            return true;
-        @SuppressWarnings("unchecked")
-        ArrayList<NextTickListEntry>[] tileTicks = new ArrayList[3];
-        for (int dim = 0; dim < 3; dim++) {
-            WorldServer world = CarpetServer.minecraft_server.worlds[dim];
-            tileTicks[dim] = new ArrayList<>(world.pendingTickListEntriesHashSet);
-            world.pendingTickListEntriesHashSet.clear();
-            world.pendingTickListEntriesTreeSet.clear();
-        }
-        doubleTileTickSchedulingFix = value; // set this early
-        for (int dim = 0; dim < 3; dim++) {
-            WorldServer world = CarpetServer.minecraft_server.worlds[dim];
-            world.pendingTickListEntriesHashSet.addAll(tileTicks[dim]);
-            world.pendingTickListEntriesTreeSet.addAll(tileTicks[dim]);
-        }
-        return true;
-    }
+//    private static boolean validateDoubleTileTickSchedulingFix(boolean value) {
+//        if (CarpetServer.minecraft_server.worlds == null)
+//            return true;
+//        @SuppressWarnings("unchecked")
+//        ArrayList<NextTickListEntry>[] tileTicks = new ArrayList[3];
+//        for (int dim = 0; dim < 3; dim++) {
+//            WorldServer world = CarpetServer.minecraft_server.worlds[dim];
+//            tileTicks[dim] = new ArrayList<>(world.pendingTickListEntriesHashSet);
+//            world.pendingTickListEntriesHashSet.clear();
+//            world.pendingTickListEntriesTreeSet.clear();
+//        }
+//        doubleTileTickSchedulingFix = value; // set this early
+//        for (int dim = 0; dim < 3; dim++) {
+//            WorldServer world = CarpetServer.minecraft_server.worlds[dim];
+//            world.pendingTickListEntriesHashSet.addAll(tileTicks[dim]);
+//            world.pendingTickListEntriesTreeSet.addAll(tileTicks[dim]);
+//        }
+//        return true;
+//    }
 
     @Rule(desc = "Fixes player position truncation causing chunks to load with one block offset to chunk boarders in negative coordinates.", category = FIX)
     public static boolean playerChunkLoadingFix = false;
 
     // ===== FEATURES ===== //
 
+    @Rule(desc = "Players drop there skulls when blown up by charged creepers.", category = FEATURE)
+    public static boolean playerSkullsByChargedCreeper = false;
+
+    @Rule(desc = "Places the mined block in the player inventory when sneaking.", category = FEATURE)
+    public static boolean carefulBreak = false;
+
+    @Rule(desc = "Combines the duration of potions when drinking out of a bottle. The combined duration capped by this carpet rule in gameticks.", options = {"0", "18000", "36000", "72000"}, category = FEATURE)
+    public static int combinePotionDuration = 0;
+
+    @Rule(desc = "Allows empty shulkerboxes to stack in the player inventory.", category = FEATURE)
+    public static boolean stackableShulkersPlayerInventory;
+
+    @Rule(desc = "Allows fake players to gain stats.", category = FEATURE)
+    public static boolean fakePlayerStats;
+
+    @Rule(desc = "Removes the skin from fake players to reduce player data requests to mojang servers.", category = FEATURE)
+    public static boolean removeFakePlayerSkins;
+
+    @Rule(desc = "Reloads fake players on server startup that were loaded before server shutdown.", category = FEATURE)
+    public static boolean reloadFakePlayers;
+
     @Rule(desc = "Turns crafting tables into automated crafting tables with inventorys.", category = FEATURE, extra = "WARNING! If the rule is turned off after use, any inventory content in crafting tables will permanently become lost after chunks are reloaded.")
     public static boolean autocrafter;
+
+    @Rule(
+            desc = "Auto-crafting dropper",
+            extra = {"Is a dropper points to the crafting table ",
+                    "and has a valid recipe in its 3x3 it crafts it.",
+                    "Overrides comparators so they indicate number of filled slots instead",
+                    "Also makes hoppers, droppers and dispensers input max 1 item per slot"
+            },
+            category = {FEATURE}
+    )
+    public static boolean autoCraftingDropper = false;
 
     @Rule(desc = "Scoreboard displays changes over time, specified in seconds.", options = {"0", "60", "600", "3600"}, validator = "validateScoreboardDelta", category = EXPERIMENTAL, extra = {
             "Set to 0 to disable Scoreboard delta display."

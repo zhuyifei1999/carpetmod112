@@ -1,7 +1,5 @@
 package carpet.commands;
 
-import carpet.helpers.OptimizedExplosion;
-import net.minecraft.block.Block;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -9,8 +7,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +27,8 @@ public class CommandLight extends CommandCarpetBase {
 
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
+        if(!command_enabled("commandLight", sender)) return;
+
         int x1, y1, z1, x2, y2, z2, lightLevel;
         String type;
         if (args.length > 7) {
